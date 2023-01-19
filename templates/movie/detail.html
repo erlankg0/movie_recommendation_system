@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    <section class="section-content padding-y bg">
+        <div class="container">
+            <!-- ============================ COMPONENT 1 ================================= -->
+            <div class="card">
+                <div class="row no-gutters">
+                    <aside class="col-md-6">
+                        <article class="gallery-wrap ">
+                            <div class="img-wrap">
+                                <a href="{{ movie.get_absolute_url }}">
+                                    <img src="{{ movie.poster.url }}" alt="{{ movie.title }}">
+                                </a>
+                            </div>
+                        </article>
+                    </aside>
+                    <div class="col-md-6 border-left">
+                        <article class="p-5">
+                            <h3 class="title mb-3">{{ movie.title }}</h3>
+                            <p class="price-detail-wrap">
+                                <span class="price h3 text-warning">
+                                    <span class="currency">Rating: </span><span class="num">{{ movie.rating }}</span>
+                                </span>
+                            </p>
+                            <dl class="item-property">
+                                <dt>Description</dt>
+                                <dd><p>{{ movie.description }}</p></dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Genre</dt>
+                                <dd>{{ movie.genre.all }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Release Date</dt>
+                                <dd>{{ movie.release_date }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Director</dt>
+                                <dd>{{ movie.director }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Cast</dt>
+                                <dd>{{ movie.budget }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Runtime</dt>
+                                <dd>{{ movie.time }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>Country</dt>
+                                <dd>{{ movie.country }}</dd>
+                            </dl>
+                            <dl class="param param-feature">
+                                <dt>IMDB Link</dt>
+                                <dd><a href="{{ movie.avg_rating }}">{{ movie.avg_rating }}</a></dd>
+                            </dl>
+                            <hr>
+                            <hr>
+                        </article>
+                    </div><!-- col.// -->
+                </div> <!-- row.// -->
+            </div> <!-- card.// -->
+            <!-- ============================ COMPONENT 1 END .// ================================= -->
+            <div class="container">
+                <div class="row">
+                    <video controls loop>
+                        <source src="{{ movie.video.url }}" type="video/mp4">
+                    </video>
+                </div>
+            </div>
+            <br>
+            <div class="row">
+                <div class="col-md-9">
+
+                    <header class="section-heading">
+                        <h3>Отзывы покупателей. </h3>
+                    </header>
+                    <article class="box mb-3">
+                        <div class="icontext w-100">
+                            <img src="{% static 'images/avatars/avatar1.jpg' %}" class="img-xs icon rounded-circle">
+                            <div class="text">
+                                <span class="date text-muted float-md-right">24.04.2020 </span>
+                                <h6 class="mb-1">Mike John</h6>
+
+                            </div>
+                        </div> <!-- icontext.// -->
+                        <div class="mt-3">
+                            <p>
+                                Dummy comment Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod
+                                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+                                quis nostrud exercitation ullamco laboris nisi ut aliquip
+                            </p>
+                        </div>
+                    </article>
+                </div> <!-- col.// -->
+            </div> <!-- row.// -->
+
+
+        </div> <!-- container .//  -->
+    </section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+    <script>
+        // Это все для HTML страницы ProductDetails (подробное описание товара)
+        $("#product select[name='color']").on('change', function () {
+            var $this = $(this); // сохраняем в переменную текущий элемент
+            $("#product_variant").val($this.val()) // очищаем select
+            $.ajax({ // инициализируем ajax запрос
+                // получаем value текущего элемента
+                url: '/shop/variant/' + $this.val() + '/', // указываем url
+                type: 'GET', // тип запроса
+
+                success: function (resp) { // вешаем свой обработчик на функцию success (успешный ответ сервера)
+                    let options = '';
+                    if ($('#size').find('option').length > 1) { // если в селекте уже есть опции, то удаляем их
+                        $('#size').find('option').nextAll().remove(); // удаляем все опции кроме первой
+                    }
+                    resp.size.forEach(size => {
+                        $('#size').append($('<option>', {
+                            value: size.id,
+                            text: size.size
+                        }));
+                    });
+                },
+                error: function (resp) {
+                    console.log('Something went wrong'); // выводим ошибку в консоль
+                }
+            });
+        });
+        // при выборе цвета, делаем ajax запрос на сервер, получаем размеры и добавляем их в селект
+        $("#product select[id='size']").on("change", function () {
+            var $this = $(this); // сохраняем в переменную текущий элемент
+            $.ajax({ // инициализируем ajax запрос
+                // получаем value текущего элемента
+                url: '/shop/size/' + $this.val() + '/price/quantity/', // указываем url для получения цены и количества
+                type: 'GET', // тип запроса
+                // изменять значение поля price при каждом запросе
+                success: function (resp) { // вешаем свой обработчик на функцию success (успешный ответ сервера)
+                    // изменить значение тега span с id price
+                    if (resp.discount > 0) {
+                        $('#price').text("Цена $" + resp.price);
+                        $('#discount').text("% " + resp.discount);
+                    } else if (resp.discount === 0) {
+                        $('#price').text("Цена" + resp.price);
+                        $("#discount").text("");
+                    }
+                    $('#quantity').text("Количество: " + resp.quantity);  // изменить значение тега id quantity на количество
+                },
+                error: function (resp) {
+                    console.log('Something went wrong');
+                }
+            });
+        });
+
+        $("#like").click(function () {
+            const url = $("#like").attr("data-like");  // get the url of the `load_provinces` view
+            $.ajax({                       // initialize an AJAX request
+                url: url,
+                success: function (data) {
+                    $("#like").className = "btn btn-success";
+                }
+            });
+        });
+
+    </script>
+{% endblock %}

@@ -1,8 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 
-from account.models import Gender, CustomUser
+from accounts.models import Gender, Account
 from movie.utils import get_file_path_poster, get_file_path_video
+from moviepy.video.io.VideoFileClip import VideoFileClip
 
 
 class Tag(models.Model):
@@ -45,10 +47,6 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
-
-    def save(self, *args, **kwargs):
-        self.name = self.name.title()
-        super(Genre, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Жанр'
@@ -171,7 +169,7 @@ class Country(models.Model):
 # класс комментариев
 class Comment(MPTTModel):
     user = models.ForeignKey(
-        'account.CustomUser',
+        'accounts.Account',
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
     )
@@ -210,6 +208,22 @@ class Comment(MPTTModel):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         db_table = 'comment'
+
+
+class Ip(models.Model):
+    ip = models.GenericIPAddressField(
+        verbose_name='IP address',
+        help_text='IP address',
+        unique=True,
+    )  # IP адрес пользователя
+
+    def __str__(self):  # Возвращает IP адрес
+        return self.ip
+
+    class Meta:
+        verbose_name = 'IP адрес'  # Имя модели
+        verbose_name_plural = 'IP адреса'  # Имя модели во множественном числе
+        db_table = 'ip'  # Имя таблицы
 
 
 # класс movie для хранения фильмов в базе данных
@@ -261,8 +275,8 @@ class Movie(models.Model):
     # средняя оценка фильма
     avg_rating = models.FloatField(
         default=0,
-        verbose_name='Средний рейтинг',
-        help_text='Средний рейтинг',
+        verbose_name='	IMDb: Средний рейтинг',
+        help_text='	IMDb: Средний рейтинг',
     )
     # ссылка на постер фильма
     poster = models.ImageField(
@@ -299,11 +313,98 @@ class Movie(models.Model):
         verbose_name='Страна',
         help_text='Страна',
     )
+    # добавление бюджета фильма
+    budget = models.PositiveIntegerField(
+        default=0,
+        verbose_name='Бюджет в долларах',
+        help_text='Бюджет в долларах',
+    )
+    # добавление количества просмотров фильма
+    views = models.ManyToManyField(
+        Ip,
+        verbose_name='Просмотры',
+        help_text='Просмотры',
+        blank=True,
+        null=True,
+    )
+    episodes = models.ManyToManyField(
+        'Episode',
+        verbose_name='Эпизоды',
+        help_text='Эпизоды',
+        blank=True,
+        null=True,
+    )
+
+    def save(self, *args, **kwargs):
+        self.year = self.release_date.year
+        self.time = "110 мин"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.title
+
+    # проверка на расширение видео
+    def clean_video(self):
+        # список допустимых форматов видео
+        allowed_extensions = ['mp4', 'avi', 'mkv']
+        # получение расширения видео
+        extension = self.video.name.split('.')[-1]
+        # проверка расширения видео
+        if extension not in allowed_extensions:
+            raise ValidationError('Недопустимый формат видео')
 
     class Meta:
         verbose_name = 'Фильм'
         verbose_name_plural = 'Фильмы'
         ordering = ['-release_date']
+
+
+# Эпизоды
+class Episode(models.Model):
+    name = models.CharField(
+        max_length=100,
+        verbose_name='Название',
+        help_text='Название эпизода фильма.  '
+    )
+    video = models.FileField(
+        upload_to='episodes/',
+        verbose_name='Видео',
+        help_text='Видео эпизода фильма.  '
+    )
+    slogan = models.CharField(
+        max_length=250,
+        verbose_name='Слоган',
+        help_text='Слоган эпизода фильма.',
+        blank=True,
+        null=True,
+    )
+    created = models.DateField(
+        verbose_name='Дата создания',
+        help_text='Дата создания эпизода фильма.'
+    )
+    used = models.BooleanField(
+        default=True,
+        verbose_name='Использован',
+        help_text='Использован ли эпизод фильма.'
+    )
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        self.name = self.name.capitalize()
+        super(Episode, self).save(*args, **kwargs)
+
+    def clean_video(self):
+        # список допустимых форматов видео
+        allowed_extensions = ['mp4', 'avi', 'mkv']
+        # получение расширения видео
+        extension = self.video.name.split('.')[-1]
+        # проверка расширения видео
+        if extension not in allowed_extensions:
+            raise ValidationError('Недопустимый формат видео')
+
+    class Meta:
+        verbose_name = 'Эпизод'
+        verbose_name_plural = 'Эпизоды'
+        db_table = 'episode'

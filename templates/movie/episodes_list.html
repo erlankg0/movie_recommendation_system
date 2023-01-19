@@ -1,0 +1,5 @@
+<select>
+{% for episode in episodes %}
+    <option value="{{ episode.id }}">{{ episode.name }}</option>
+{% endfor %}
+</select>

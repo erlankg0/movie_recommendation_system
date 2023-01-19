@@ -24,8 +24,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
     'mptt',
-    'account.apps.AccountConfig',  # приложения для управления пользователями (регистрация,удаления,восстановления,вход)
+    'accounts.apps.AccountsConfig',
+    # приложения для управления пользователями (регистрация,удаления,восстановления,вход)
     'api.apps.ApiConfig',  # приложения для APİ
     'movie.apps.MovieConfig',  # приложения где будут храниться и выводится фильмы
 ]
@@ -54,6 +56,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'movie.context_processors.get_all_genres',
             ],
         },
     },
@@ -67,7 +70,7 @@ WSGI_APPLICATION = 'movie_recommendation_system.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite',
     }
 }
 
@@ -104,10 +107,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
+    'static',
 ]
-
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -116,4 +119,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'account.CustomUser'  # модель пользователя
+AUTH_USER_MODEL = 'accounts.Account'

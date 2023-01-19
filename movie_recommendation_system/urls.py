@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
                   path('admin/', admin.site.urls),  # админка
-                  path('', include('account.urls')),
+                  path('auth/', include('accounts.urls')),
                   # приложение для управления пользователями (регистрация,удаления,восстановления,вход)
-                  path('movie/', include('movie.urls')), # приложение где будут храниться и выводится фильмы
+                  path('', include('movie.urls')), # приложение где будут храниться и выводится фильмы
               ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

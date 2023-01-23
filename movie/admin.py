@@ -2,13 +2,10 @@ from django.contrib import admin
 from django.template.loader import render_to_string
 
 from movie.models import Movie, Genre, Comment, Country, Actor, Director, Tag, Episode
-from movie.forms import MovieForm, ExcludeEpisodeWidget
-from django.db import models
-
+from movie.forms import MovieForm
 
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    form = MovieForm
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)

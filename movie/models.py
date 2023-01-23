@@ -5,6 +5,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from accounts.models import Gender, Account
 from movie.utils import get_file_path_poster, get_file_path_video
 from moviepy.video.io.VideoFileClip import VideoFileClip
+from pytils.translit import slugify as slugify_
 
 
 class Tag(models.Model):
@@ -24,6 +25,7 @@ class Tag(models.Model):
 
     def save(self, *args, **kwargs):
         self.name = self.name.title()
+        self.slug = slugify_(f"{self.name}-{self.pk}")
         super(Tag, self).save(*args, **kwargs)
 
     class Meta:
@@ -47,6 +49,10 @@ class Genre(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify_(f"{self.name}")
+        super(Genre, self).save(*args, **kwargs)
 
     class Meta:
         verbose_name = 'Жанр'
@@ -89,6 +95,8 @@ class Actor(models.Model):
 
     def save(self, *args, **kwargs):
         self.name = self.name.capitalize()
+        self.slug = slugify_(f"{self.name}-{self.pk}")
+
         super(Actor, self).save(*args, **kwargs)
 
     class Meta:
@@ -132,6 +140,7 @@ class Director(models.Model):
 
     def save(self, *args, **kwargs):
         self.name = self.name.capitalize()
+        self.slug = slugify_(f"{self.name}-{self.pk}")
         super(Director, self).save(*args, **kwargs)
 
     class Meta:
@@ -334,10 +343,16 @@ class Movie(models.Model):
         blank=True,
         null=True,
     )
+    slug = models.SlugField(
+        verbose_name="URL",
+        help_text="URL",
+        unique=True,
+    )
 
     def save(self, *args, **kwargs):
         self.year = self.release_date.year
         self.time = "110 мин"
+        self.slug = slugify_(f"{self.title}-{self.pk}")
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -387,12 +402,18 @@ class Episode(models.Model):
         verbose_name='Использован',
         help_text='Использован ли эпизод фильма.'
     )
+    slug = models.SlugField(
+        verbose_name="URL",
+        help_text="URL",
+        unique=True
+    )
 
     def __str__(self):
         return self.name
 
     def save(self, *args, **kwargs):
         self.name = self.name.capitalize()
+        self.slug = slugify_(f"{self.name}-{self.pk}")
         super(Episode, self).save(*args, **kwargs)
 
     def clean_video(self):

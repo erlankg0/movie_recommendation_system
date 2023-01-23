@@ -46,7 +46,6 @@ class ChangePasswordDoneView(PasswordResetDoneView):
     template_name = 'accounts/change_password_done.html'
 
 
-
 # Reset password.
 class ResetPasswordView(PasswordResetView):
     """Reset Password View"""
